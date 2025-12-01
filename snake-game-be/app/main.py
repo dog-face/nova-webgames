@@ -1,12 +1,15 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 import asyncio
 from app.core.config import settings
 from app.db.session import AsyncSessionLocal
 from app.models.active_session import ActiveSession
 from sqlalchemy import select
 from datetime import datetime, timedelta
+import traceback
 
 async def cleanup_stale_sessions():
     """Background task to clean up stale sessions"""
@@ -77,18 +80,77 @@ app = FastAPI(
     ],
 )
 
-origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-]
+# CORS origins - parse from settings or use defaults
+# For development, allow common localhost origins
+# In production, this should be restricted to specific domains
+try:
+    cors_origins_str = getattr(settings, 'CORS_ORIGINS', None)
+    if cors_origins_str and cors_origins_str != "*":
+        cors_origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
+    elif cors_origins_str == "*":
+        cors_origins = ["*"]
+    else:
+        # Default origins for development
+        cors_origins = [
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:3000",
+        ]
+except Exception:
+    # Fallback to default origins
+    cors_origins = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+    ]
+
+# Log CORS origins for debugging (remove in production)
+print(f"CORS allowed origins: {cors_origins}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+# Global exception handler to ensure CORS headers are always included
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Ensure CORS headers are included even in error responses"""
+    # Get origin from request
+    origin = request.headers.get("origin", "*")
+    
+    # Determine allowed origin
+    if cors_origins == ["*"] or origin in cors_origins:
+        allow_origin = origin if cors_origins != ["*"] else "*"
+    else:
+        allow_origin = cors_origins[0] if cors_origins else "*"
+    
+    error_detail = {
+        "error": {
+            "code": "INTERNAL_SERVER_ERROR",
+            "message": "An internal server error occurred"
+        }
+    }
+    # In development, include traceback
+    if settings.SECRET_KEY == "your-secret-key-here-change-in-production":
+        error_detail["error"]["traceback"] = traceback.format_exc()
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=error_detail,
+        headers={
+            "Access-Control-Allow-Origin": allow_origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
 
 from app.api.v1 import auth, leaderboard, watch, websocket
 

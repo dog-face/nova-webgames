@@ -9,7 +9,18 @@ FastAPI backend for the Snake Game application with authentication, leaderboard,
 source venv/bin/activate
 ```
 
-### 2. Start the Server
+### 2. Bootstrap the Database
+```bash
+# Using Makefile (recommended)
+make bootstrap-db
+
+# Or directly
+python bootstrap_db.py
+```
+
+This will create the database (if using PostgreSQL) and run all migrations.
+
+### 3. Start the Server
 ```bash
 uvicorn app.main:app --reload
 ```
@@ -20,6 +31,43 @@ The server will start at `http://localhost:8000`
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 - **OpenAPI JSON**: http://localhost:8000/openapi.json
+
+## Docker Development
+
+The easiest way to run the backend is using Docker Compose from the project root:
+
+### Quick Start with Docker
+
+1. **From project root, start all services:**
+   ```bash
+   make docker-up
+   ```
+
+2. **Bootstrap the database:**
+   ```bash
+   make docker-bootstrap
+   ```
+
+   Or directly:
+   ```bash
+   docker-compose exec backend python bootstrap_db.py
+   ```
+
+3. **View logs:**
+   ```bash
+   make docker-logs
+   ```
+
+### Containerized Database Bootstrap
+
+The bootstrap script works in Docker containers. The database connection is automatically configured to use the `postgres` service:
+
+- Database URL: `postgresql://postgres:postgres@postgres:5432/snake_game`
+- Service name `postgres` resolves via Docker's internal DNS
+
+### Hot Reload in Docker
+
+The backend runs with `--reload` flag, so code changes are automatically detected and the server restarts. Source code is mounted as a volume for live updates.
 
 ## Development
 
@@ -40,6 +88,22 @@ pytest
 ./run_tests.sh
 ```
 
+### Database Bootstrap
+
+Bootstrap the database (creates database if using PostgreSQL, then runs migrations):
+
+```bash
+# Using Makefile (recommended)
+make bootstrap-db
+
+# Or directly
+python bootstrap_db.py
+```
+
+This will:
+- **For PostgreSQL**: Check if the database exists, create it if it doesn't, then run migrations
+- **For SQLite**: Run migrations (database file will be created automatically)
+
 ### Database Migrations
 ```bash
 # Create a new migration
@@ -47,6 +111,9 @@ alembic revision --autogenerate -m "description"
 
 # Apply migrations
 alembic upgrade head
+
+# Or using Makefile
+make migrate
 ```
 
 ## Environment Variables
@@ -54,11 +121,95 @@ alembic upgrade head
 Create a `.env` file in the project root:
 
 ```env
-DATABASE_URL=sqlite:///./snake_game.db
+# PostgreSQL (recommended for production)
+DATABASE_URL=postgresql://user:password@localhost:5432/snake_game
+
+# Or SQLite (for development/testing)
+# DATABASE_URL=sqlite:///./snake_game.db
+
 SECRET_KEY=your-secret-key-here-change-in-production
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 SESSION_TIMEOUT=300
 ```
+
+### PostgreSQL Setup
+
+1. **Install PostgreSQL** (if not already installed):
+   ```bash
+   # macOS
+   brew install postgresql@14
+   brew services start postgresql@14
+   
+   # Ubuntu/Debian
+   sudo apt-get install postgresql postgresql-contrib
+   sudo systemctl start postgresql
+   ```
+
+2. **Verify PostgreSQL is running**:
+   ```bash
+   pg_isready -h localhost -p 5432
+   ```
+   Should output: `localhost:5432 - accepting connections`
+
+3. **Update your `.env` file** with the connection string:
+   ```env
+   # macOS with Homebrew: use your macOS username (not 'postgres')
+   DATABASE_URL=postgresql://your_username@localhost:5432/snake_game
+   
+   # Linux: typically uses 'postgres' user
+   DATABASE_URL=postgresql://postgres@localhost:5432/snake_game
+   
+   # Or with a custom user and password
+   DATABASE_URL=postgresql://snake_user:your_password@localhost:5432/snake_game
+   ```
+   
+   **Note**: 
+   - The bootstrap script will automatically create the database if it doesn't exist
+   - On macOS, Homebrew PostgreSQL uses your macOS username as the default superuser
+   - To find your PostgreSQL user: `psql -l` (will show the owner of databases)
+
+4. **Bootstrap the database** (creates database and runs migrations):
+   ```bash
+   make bootstrap-db
+   ```
+   
+   This will:
+   - Check if the database exists
+   - Create it if it doesn't exist
+   - Run all migrations
+   
+   Or manually:
+   ```bash
+   # Create database manually (optional - bootstrap script does this)
+   createdb snake_game
+   
+   # Run migrations
+   alembic upgrade head
+   ```
+
+### Troubleshooting
+
+**PostgreSQL Connection Refused:**
+- Make sure PostgreSQL is running:
+  ```bash
+  # macOS
+  brew services start postgresql@14
+  
+  # Linux
+  sudo systemctl start postgresql
+  
+  # Check status
+  pg_isready -h localhost -p 5432
+  ```
+
+**Permission Denied:**
+- Ensure the user in `DATABASE_URL` has permission to create databases
+- For development, you can use the default `postgres` superuser
+- Or create a user with proper permissions:
+  ```sql
+  CREATE USER snake_user WITH PASSWORD 'your_password';
+  ALTER USER snake_user CREATEDB;
+  ```
 
 ## API Endpoints
 

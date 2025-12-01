@@ -30,6 +30,16 @@ pip install -r requirements.txt
 
 4. Set up environment variables:
 Create a `.env` file in `snake-game-be/`:
+
+**For PostgreSQL (recommended):**
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/snake_game
+SECRET_KEY=your-secret-key-here-change-in-production
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+SESSION_TIMEOUT=300
+```
+
+**For SQLite (development/testing):**
 ```env
 DATABASE_URL=sqlite:///./snake_game.db
 SECRET_KEY=your-secret-key-here-change-in-production
@@ -37,10 +47,19 @@ ACCESS_TOKEN_EXPIRE_MINUTES=1440
 SESSION_TIMEOUT=300
 ```
 
-5. Run database migrations:
+**PostgreSQL Setup:**
+- Install PostgreSQL: `brew install postgresql` (macOS) or `sudo apt-get install postgresql` (Linux)
+- Create database: `createdb snake_game` or via `psql`: `CREATE DATABASE snake_game;`
+- Update `DATABASE_URL` in `.env` with your PostgreSQL credentials
+
+5. Bootstrap the database (creates database if using PostgreSQL, then runs migrations):
 ```bash
-alembic upgrade head
+make bootstrap-db
 ```
+
+This will automatically:
+- Create the PostgreSQL database if it doesn't exist (for PostgreSQL)
+- Run all database migrations
 
 6. Start the backend server:
 ```bash
@@ -74,6 +93,89 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:5173`
+
+## Docker Setup (Recommended)
+
+The easiest way to run the entire application stack is using Docker Compose. This includes PostgreSQL, the backend, and frontend with hot-reload support.
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- No need to install PostgreSQL, Python, or Node.js locally
+
+### Quick Start with Docker
+
+1. **Build and start all services:**
+   ```bash
+   make docker-build
+   make docker-up
+   ```
+
+   Or using docker-compose directly:
+   ```bash
+   docker-compose build
+   docker-compose up -d
+   ```
+
+2. **Bootstrap the database:**
+   ```bash
+   make docker-bootstrap
+   ```
+
+   Or directly:
+   ```bash
+   docker-compose exec backend python bootstrap_db.py
+   ```
+
+3. **Access the application:**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+
+### Docker Commands
+
+- `make docker-build` - Build all Docker images
+- `make docker-up` - Start all services
+- `make docker-down` - Stop all services
+- `make docker-logs` - View logs from all services
+- `make docker-bootstrap` - Bootstrap database in container
+- `make docker-restart` - Restart all services
+- `make docker-clean` - Remove containers, volumes, and images
+
+### Hot Reload
+
+Both frontend and backend support hot-reload when running in Docker:
+- **Backend**: Changes to Python files automatically restart the server
+- **Frontend**: Changes to React/TypeScript files trigger Vite HMR (Hot Module Replacement)
+
+### Environment Variables
+
+Create a `.env` file in the project root (optional, defaults are provided):
+
+```env
+# PostgreSQL Configuration
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=snake_game
+
+# Backend Configuration
+SECRET_KEY=your-secret-key-here-change-in-production
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+SESSION_TIMEOUT=300
+
+# Frontend Configuration
+VITE_API_URL=http://localhost:8000/api/v1
+```
+
+### Database Persistence
+
+The PostgreSQL data is stored in a Docker volume (`postgres_data`), so your data persists even when containers are stopped. To completely reset the database:
+
+```bash
+make docker-clean
+```
+
+This will remove all containers, volumes, and images.
 
 ## Features
 

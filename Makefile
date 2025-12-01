@@ -1,4 +1,4 @@
-.PHONY: help install install-be install-fe start start-be start-fe stop stop-be stop-fe restart restart-be restart-fe test test-be test-fe clean build build-fe migrate migrate-up migrate-down dev dev-be dev-fe
+.PHONY: help install install-be install-fe start start-be start-fe stop stop-be stop-fe restart restart-be restart-fe test test-be test-fe clean build build-fe migrate migrate-up migrate-down bootstrap-db dev dev-be dev-fe docker-build docker-up docker-down docker-logs docker-bootstrap docker-restart docker-clean
 
 # Default target
 .DEFAULT_GOAL := help
@@ -53,6 +53,7 @@ help: ## Show this help message
 	@echo "  make test-fe      - Run frontend tests"
 	@echo ""
 	@echo "$(GREEN)Database:$(NC)"
+	@echo "  make bootstrap-db - Bootstrap database (create if needed, run migrations)"
 	@echo "  make migrate      - Run database migrations (upgrade to head)"
 	@echo "  make migrate-up   - Upgrade database to head"
 	@echo "  make migrate-down - Downgrade database by one revision"
@@ -60,6 +61,16 @@ help: ## Show this help message
 	@echo "$(GREEN)Build:$(NC)"
 	@echo "  make build        - Build frontend for production"
 	@echo "  make clean        - Clean build artifacts and cache"
+	@echo ""
+	@echo "$(GREEN)Docker:$(NC)"
+	@echo "  make docker-build     - Build all Docker images"
+	@echo "  make docker-up        - Start all services with Docker Compose"
+	@echo "  make docker-down      - Stop all services"
+	@echo "  make docker-logs      - View logs from all services"
+	@echo "  make docker-bootstrap - Bootstrap database in container"
+	@echo "  make docker-migrate    - Run database migrations in container"
+	@echo "  make docker-restart   - Restart all services"
+	@echo "  make docker-clean     - Remove containers, volumes, and images"
 
 # Installation targets
 install: install-be install-fe ## Install all dependencies
@@ -144,6 +155,16 @@ test-fe: ## Run frontend tests
 	fi
 	@cd $(FE_DIR) && $(NPM) test -- --run
 
+# Database bootstrap target
+bootstrap-db: ## Bootstrap database (create if needed, run migrations)
+	@echo "$(CYAN)Bootstrapping database...$(NC)"
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		echo "$(RED)Error: Virtual environment not found. Run 'make install-be' first.$(NC)"; \
+		exit 1; \
+	fi
+	@cd $(BE_DIR) && venv/bin/python bootstrap_db.py
+	@echo "$(GREEN)✓ Database bootstrap complete$(NC)"
+
 # Database migration targets
 migrate: migrate-up ## Run database migrations
 
@@ -187,3 +208,46 @@ clean: ## Clean build artifacts and cache
 	@find $(BE_DIR) -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
 	@find $(BE_DIR) -type f -name "*.pyc" -delete 2>/dev/null || true
 	@echo "$(GREEN)✓ Clean complete$(NC)"
+
+# Docker targets
+docker-build: ## Build all Docker images
+	@echo "$(CYAN)Building Docker images...$(NC)"
+	@docker-compose build
+	@echo "$(GREEN)✓ Docker images built$(NC)"
+
+docker-up: ## Start all services with Docker Compose
+	@echo "$(CYAN)Starting Docker services...$(NC)"
+	@docker-compose up -d
+	@echo "$(GREEN)✓ Docker services started$(NC)"
+	@echo "$(YELLOW)Backend: http://localhost:8000$(NC)"
+	@echo "$(YELLOW)Frontend: http://localhost:5173$(NC)"
+	@echo "$(YELLOW)API Docs: http://localhost:8000/docs$(NC)"
+
+docker-down: ## Stop all services
+	@echo "$(YELLOW)Stopping Docker services...$(NC)"
+	@docker-compose down
+	@echo "$(GREEN)✓ Docker services stopped$(NC)"
+
+docker-logs: ## View logs from all services
+	@docker-compose logs -f
+
+docker-bootstrap: ## Bootstrap database in container
+	@echo "$(CYAN)Bootstrapping database in container...$(NC)"
+	@docker-compose exec backend python bootstrap_db.py
+	@echo "$(GREEN)✓ Database bootstrap complete$(NC)"
+
+docker-migrate: ## Run database migrations in container
+	@echo "$(CYAN)Running database migrations in container...$(NC)"
+	@docker-compose exec backend alembic upgrade head
+	@echo "$(GREEN)✓ Database migrations applied$(NC)"
+
+docker-restart: ## Restart all services
+	@echo "$(YELLOW)Restarting Docker services...$(NC)"
+	@docker-compose restart
+	@echo "$(GREEN)✓ Docker services restarted$(NC)"
+
+docker-clean: ## Remove containers, volumes, and images
+	@echo "$(YELLOW)Cleaning Docker resources...$(NC)"
+	@echo "$(RED)Warning: This will remove all containers, volumes, and images!$(NC)"
+	@docker-compose down -v --rmi all
+	@echo "$(GREEN)✓ Docker resources cleaned$(NC)"

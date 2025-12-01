@@ -9,6 +9,7 @@ passlib[bcrypt]
 python-multipart
 aiosqlite
 asyncpg
+psycopg2-binary  # For PostgreSQL (used by Alembic migrations)
 httpx
 websockets
 pytest

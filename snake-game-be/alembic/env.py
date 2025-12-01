@@ -5,9 +5,27 @@ from sqlalchemy import pool
 
 from alembic import context
 
+# Import settings to use the same DATABASE_URL
+from app.core.config import settings
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Override sqlalchemy.url with the DATABASE_URL from settings
+# Convert to sync URL for Alembic (Alembic uses sync connections)
+database_url = settings.DATABASE_URL
+if database_url.startswith("postgresql+asyncpg://"):
+    # Convert asyncpg URL to sync psycopg2 URL for Alembic
+    database_url = database_url.replace("postgresql+asyncpg://", "postgresql://")
+elif database_url.startswith("sqlite+aiosqlite://"):
+    # Convert aiosqlite URL to sync sqlite URL for Alembic
+    database_url = database_url.replace("sqlite+aiosqlite://", "sqlite://")
+elif database_url.startswith("sqlite://"):
+    # SQLite URLs are already in sync format
+    pass
+# PostgreSQL URLs starting with "postgresql://" are already in sync format
+config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
