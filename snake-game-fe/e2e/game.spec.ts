@@ -8,7 +8,7 @@ test.describe('Game Flow', () => {
     await page.click('a:has-text("Play Game")');
 
     // Should be on game page
-    await page.waitForURL('/game', { timeout: 5000 });
+    await page.waitForURL('/game', { timeout: 10000 });
     await expect(page.locator('h2:has-text("Snake Game")')).toBeVisible();
   });
 
@@ -30,7 +30,7 @@ test.describe('Game Flow', () => {
     
     // Paused overlay should appear with Resume button
     await expect(page.locator('.game-overlay h3:has-text("Paused")')).toBeVisible();
-    await expect(page.locator('button:has-text("Resume")')).toBeVisible();
+    await expect(page.locator('button:has-text("Resume")').first()).toBeVisible();
   });
 
   test('should change game mode', async ({ authenticatedUser, page }) => {

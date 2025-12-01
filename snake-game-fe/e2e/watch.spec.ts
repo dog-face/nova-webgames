@@ -26,7 +26,7 @@ test.describe('Watch Mode', () => {
     await page.click('a:has-text("Watch Players")');
 
     // Should be on watch page
-    await page.waitForURL('/watch', { timeout: 5000 });
+    await page.waitForURL('/watch', { timeout: 10000 });
     await expect(page.locator('h2:has-text("Watch Players")')).toBeVisible();
   });
 

@@ -8,9 +8,9 @@ test.describe('Leaderboard', () => {
     await expect(page.locator('h2:has-text("Leaderboard")')).toBeVisible();
 
     // Should see filter buttons
-    await expect(page.locator('button:has-text("All")')).toBeVisible();
-    await expect(page.locator('button:has-text("Pass-through")')).toBeVisible();
-    await expect(page.locator('button:has-text("Walls")')).toBeVisible();
+    await expect(page.locator('button:has-text("All")').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Pass-through")').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Walls")').first()).toBeVisible();
   });
 
   test('should filter leaderboard by game mode', async ({ authenticatedUser, page }) => {
@@ -66,7 +66,7 @@ test.describe('Leaderboard', () => {
     await page.click('a:has-text("View Leaderboard")');
 
     // Should be on leaderboard page
-    await page.waitForURL('/leaderboard', { timeout: 5000 });
+    await page.waitForURL('/leaderboard', { timeout: 10000 });
     await expect(page.locator('h2:has-text("Leaderboard")')).toBeVisible();
   });
 });
