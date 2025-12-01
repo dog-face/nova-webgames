@@ -7,6 +7,7 @@ This guide will walk you through deploying the Snake Game application to Render.
 1. A GitHub account with this repository pushed
 2. A Render account (sign up at https://render.com)
 3. Git access to this repository
+4. **Note**: Render requires a credit card even for free tier services (to prevent abuse). You won't be charged for free tier usage.
 
 ## Quick Deploy (Using Blueprint)
 
@@ -85,7 +86,7 @@ If you prefer to set up services manually:
 
 1. Go to Render dashboard → "New +" → "PostgreSQL"
 2. Name it `snake-game-db`
-3. Select a plan (Starter is free)
+3. Select a plan (Free tier is available)
 4. Note the connection string (you'll need this)
 
 ### Step 2: Create Backend Service
@@ -99,7 +100,7 @@ If you prefer to set up services manually:
    - **Docker Context**: `snake-game-be`
    - **Region**: Choose closest to you
    - **Branch**: `master` (or your main branch)
-   - **Plan**: Starter (free) or Standard for production
+   - **Plan**: Free (spins down after inactivity) or Standard for production
 
 4. Add Environment Variables:
    - `DATABASE_URL`: (from PostgreSQL service)
@@ -121,7 +122,7 @@ If you prefer to set up services manually:
    - **Docker Context**: `snake-game-fe`
    - **Region**: Same as backend
    - **Branch**: `master` (or your main branch)
-   - **Plan**: Starter (free) or Standard for production
+   - **Plan**: Free (spins down after inactivity) or Standard for production
 
 4. Add Environment Variables:
    - `VITE_API_URL`: `https://your-backend-url.onrender.com/api/v1`
@@ -206,9 +207,10 @@ If you prefer to set up services manually:
 
 ## Cost Estimate
 
-**Free Tier (Starter Plan):**
-- Web services: Free (spins down after 15 min inactivity)
-- Database: Free (limited to 90 days, 1GB storage)
+**Free Tier:**
+- Web services: Free (spins down after 15 min inactivity, 512MB RAM, 0.1 CPU)
+- Database: Free (1GB storage, expires after 30 days, one per workspace)
+- Instance hours: 750 free hours per month
 
 **Standard Plan (Recommended for Production):**
 - Web services: ~$7/month per service

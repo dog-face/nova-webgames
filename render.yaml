@@ -1,5 +1,7 @@
 # Render Blueprint for Snake Game
 # This file defines all services needed for the application
+# Note: Render requires a credit card even for free tier (to prevent abuse)
+# You won't be charged for free tier usage within limits
 
 services:
   # Backend API Service
@@ -8,7 +10,7 @@ services:
     env: docker
     dockerfilePath: ./snake-game-be/Dockerfile.prod
     dockerContext: ./snake-game-be
-    plan: starter  # Free tier, upgrade to standard for production
+    plan: free  # Free tier - spins down after 15 min inactivity
     region: oregon  # Change to your preferred region
     buildCommand: ""  # Docker handles building
     startCommand: ""  # Defined in Dockerfile
@@ -33,7 +35,7 @@ services:
     env: docker
     dockerfilePath: ./snake-game-fe/Dockerfile.prod
     dockerContext: ./snake-game-fe
-    plan: starter  # Free tier, upgrade to standard for production
+    plan: free  # Free tier - spins down after 15 min inactivity
     region: oregon  # Should match backend region
     buildCommand: ""  # Docker handles building
     startCommand: ""  # Defined in Dockerfile
@@ -45,7 +47,7 @@ services:
 databases:
   # PostgreSQL Database
   - name: snake-game-db
-    plan: starter  # Free tier, upgrade for production
+    plan: free  # Free tier - 1GB storage, expires after 30 days
     databaseName: snake_game
     user: snake_game_user
 
