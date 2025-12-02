@@ -176,3 +176,10 @@ The project uses a Makefile for common operations. Always check `make help` for 
 - Check `snake-game-be/README.md` for backend-specific details
 - Review test files for examples of how to use the codebase
 
+## Scratch files
+
+- if you need to use a scratch document for thinking or documentation, place it in the `/scratch` directory. 
+
+## Documentation
+
+- When making changes that affect the setup or tools available in this repository, document those changes in appropriate documentation files. 
