@@ -41,7 +41,7 @@ jobs:
 
       - name: Run backend tests
         working-directory: snake-game-be
-        run: venv/bin/python -m pytest
+        run: bash -c "source venv/bin/activate && pytest"
 
       - name: Install frontend dependencies
         working-directory: snake-game-fe
