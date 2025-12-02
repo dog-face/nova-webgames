@@ -31,14 +31,28 @@ jobs:
           cache: 'pip'
           cache-dependency-path: snake-game-be/requirements.txt
 
-      - name: Install backend dependencies and run tests
+      - name: Install backend dependencies
         working-directory: snake-game-be
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          pytest
+
+      - name: Run backend tests
+        working-directory: snake-game-be
+        run: |
+          source venv/bin/activate
+          echo "Python version:"
+          python --version
+          echo "Python path:"
+          which python
+          echo "Pytest path:"
+          which pytest
+          echo "Pytest version:"
+          pytest --version
+          echo "Running tests..."
+          pytest -v --tb=short
 
       - name: Install frontend dependencies
         working-directory: snake-game-fe
