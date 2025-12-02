@@ -1,0 +1,118 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: snake-game-fe/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: snake-game-be/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: snake-game-be
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run backend tests
+        working-directory: snake-game-be
+        run: |
+          source venv/bin/activate
+          pytest
+
+      - name: Install frontend dependencies
+        working-directory: snake-game-fe
+        run: npm ci
+
+      - name: Run frontend unit tests
+        working-directory: snake-game-fe
+        run: npm test
+
+      - name: Install Playwright browsers
+        working-directory: snake-game-fe
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify backend venv for E2E tests
+        run: |
+          if [ ! -f "snake-game-be/venv/bin/python" ]; then
+            echo "Backend venv not found, recreating..."
+            cd snake-game-be
+            python -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+          else
+            echo "Backend venv found and ready for E2E tests"
+          fi
+
+      - name: Run E2E tests
+        working-directory: snake-game-fe
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: snake-game-fe/playwright-report/
+          retention-days: 30
+
+  deploy:
+    name: Deploy to Render
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render
+        run: |
+          echo "✅ All tests passed!"
+          echo "🚀 Render will automatically deploy from the master branch."
+          echo ""
+          echo "Note: Render watches the connected branch and auto-deploys on push."
+          echo "If you need manual deployment control, uncomment the Render API steps below"
+          echo "and configure the required secrets: RENDER_API_KEY, RENDER_SERVICE_ID_BACKEND, RENDER_SERVICE_ID_FRONTEND"
+          
+      # Option B: Manual Render API deployment (uncomment if needed)
+      # - name: Trigger Render Backend Deployment
+      #   run: |
+      #     curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_BACKEND }}/deploys" \
+      #       -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+      #       -H "Content-Type: application/json"
+      # 
+      # - name: Trigger Render Frontend Deployment
+      #   run: |
+      #     curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_FRONTEND }}/deploys" \
+      #       -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+      #       -H "Content-Type: application/json"
+
