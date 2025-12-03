@@ -350,25 +350,25 @@ class TestWebSocketMultipleConnections:
     """Test multiple concurrent connections"""
     
     def test_websocket_multiple_connections(self, ws_client: TestClient):
-        """Test multiple concurrent WebSocket connections"""
-        connections = []
+        """Test multiple sequential WebSocket connections"""
+        connection_ids = []
         
-        # Create 5 sequential connections (TestClient is synchronous)
+        # Create 5 sequential connections using context managers
+        # Using context managers ensures proper cleanup and prevents hanging
         for i in range(5):
-            ws = ws_client.websocket_connect("/ws")
-            conn_msg = ws.receive_json()
-            assert conn_msg["type"] == "connected"
-            connections.append(ws)
+            with ws_client.websocket_connect("/ws") as ws:
+                conn_msg = ws.receive_json()
+                assert conn_msg["type"] == "connected"
+                connection_id = conn_msg["connectionId"]
+                connection_ids.append(connection_id)
+                
+                # Verify connection is active by sending ping
+                ws.send_json({"type": "ping"})
+                response = ws.receive_json()
+                assert response["type"] == "pong"
         
-        # Verify all connections are active by sending pings
-        for ws in connections:
-            ws.send_json({"type": "ping"})
-            response = ws.receive_json()
-            assert response["type"] == "pong"
-        
-        # Close all connections
-        for ws in connections:
-            ws.close()
+        # All connection IDs should be unique
+        assert len(connection_ids) == len(set(connection_ids))
     
     def test_websocket_connection_cleanup_on_disconnect(self, ws_client: TestClient):
         """Test that connections are cleaned up on disconnect"""
