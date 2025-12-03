@@ -32,3 +32,4 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
   );
 };
 
+

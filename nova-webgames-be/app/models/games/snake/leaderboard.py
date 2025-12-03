@@ -20,3 +20,4 @@ class SnakeLeaderboard(Base):
 
     user = relationship("User")
 
+

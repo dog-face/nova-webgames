@@ -70,9 +70,48 @@ jobs:
             echo "Backend venv found and ready for E2E tests"
           fi
 
+      - name: Bootstrap database for E2E tests
+        working-directory: nova-webgames-be
+        run: |
+          echo "=========================================="
+          echo "Bootstrap Database for E2E Tests"
+          echo "=========================================="
+          echo "Working directory: $(pwd)"
+          echo "Python: $(which python)"
+          echo "Python version: $(python --version)"
+          echo "Database URL: $DATABASE_URL"
+          echo ""
+          source venv/bin/activate
+          echo "Running bootstrap_db.py..."
+          python bootstrap_db.py
+          echo ""
+          echo "✓ Bootstrap completed"
+          echo "=========================================="
+        env:
+          DATABASE_URL: 'sqlite:///./test_snake_game.db'
+          SECRET_KEY: 'test-secret-key-for-e2e-tests'
+          ACCESS_TOKEN_EXPIRE_MINUTES: '1440'
+          SESSION_TIMEOUT: '300'
+
       - name: Run E2E tests
         working-directory: nova-webgames-fe
-        run: npm run test:e2e
+        run: |
+          echo "=========================================="
+          echo "Running E2E Tests"
+          echo "=========================================="
+          echo "Working directory: $(pwd)"
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Playwright version: $(npx playwright --version)"
+          echo ""
+          echo "Checking backend server availability..."
+          timeout 10 bash -c 'until curl -f http://localhost:8000/health; do sleep 1; done' || echo "⚠ Backend not yet available (this is expected, Playwright will start it)"
+          echo ""
+          echo "Starting E2E tests..."
+          npm run test:e2e
+          echo ""
+          echo "✓ E2E tests completed"
+          echo "=========================================="
         env:
           CI: true
 

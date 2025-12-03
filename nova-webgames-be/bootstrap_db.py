@@ -7,6 +7,7 @@ import sys
 import os
 import subprocess
 from urllib.parse import urlparse
+from datetime import datetime
 
 # Only import psycopg2 if needed (for PostgreSQL)
 try:
@@ -127,41 +128,79 @@ def create_database(host, port, user, password, database):
 def run_migrations():
     """Run Alembic migrations."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    print(f"Running migrations from: {script_dir}")
     
     # Try to use venv's alembic if available
     venv_alembic = os.path.join(script_dir, "venv", "bin", "alembic")
     if os.path.exists(venv_alembic):
         alembic_cmd = venv_alembic
+        print(f"Using venv alembic: {alembic_cmd}")
     else:
         alembic_cmd = "alembic"
+        print(f"Using system alembic: {alembic_cmd}")
     
+    # Check if alembic exists
+    if not os.path.exists(alembic_cmd) and alembic_cmd != "alembic":
+        # Try to find alembic in PATH
+        import shutil
+        alembic_path = shutil.which("alembic")
+        if alembic_path:
+            alembic_cmd = alembic_path
+            print(f"Found alembic in PATH: {alembic_cmd}")
+        else:
+            print("Error: alembic command not found. Make sure you're in a virtual environment")
+            print("or install dependencies with: pip install -r requirements.txt")
+            return False
+    
+    print("Executing: alembic upgrade head")
     try:
         result = subprocess.run(
             [alembic_cmd, "upgrade", "head"],
             cwd=script_dir,
             check=True,
             capture_output=True,
-            text=True
+            text=True,
+            timeout=60  # 60 second timeout to prevent hanging
         )
         print("✓ Database migrations applied successfully")
         if result.stdout:
+            print("Migration output:")
             print(result.stdout)
         return True
+    except subprocess.TimeoutExpired:
+        print("✗ ERROR: Migration command timed out after 60 seconds")
+        print("This suggests the migration is hanging or taking too long")
+        return False
     except subprocess.CalledProcessError as e:
-        print(f"Error running migrations: {e}")
+        print(f"✗ Error running migrations: {e}")
         if e.stdout:
             print(f"stdout: {e.stdout}")
         if e.stderr:
             print(f"stderr: {e.stderr}")
         return False
     except FileNotFoundError:
-        print("Error: alembic command not found. Make sure you're in a virtual environment")
+        print("✗ Error: alembic command not found. Make sure you're in a virtual environment")
         print("or install dependencies with: pip install -r requirements.txt")
         return False
 
 def bootstrap_sqlite():
     """Bootstrap SQLite database (just run migrations)."""
     print("Detected SQLite database")
+    
+    # Extract database file path from DATABASE_URL
+    from app.core.config import settings
+    db_url = settings.DATABASE_URL
+    if db_url.startswith("sqlite:///./"):
+        db_file = db_url.replace("sqlite:///./", "")
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), db_file)
+        print(f"Database file path: {db_path}")
+        if os.path.exists(db_path):
+            print(f"✓ Database file exists: {db_file}")
+            file_size = os.path.getsize(db_path)
+            print(f"  File size: {file_size} bytes")
+        else:
+            print(f"⚠ Database file does not exist yet: {db_file}")
+    
     print("Running migrations...")
     return run_migrations()
 
@@ -205,34 +244,70 @@ def bootstrap_postgresql(db_info):
 
 def main():
     """Main bootstrap function."""
-    # Load environment variables
-    from app.core.config import settings
-    
-    database_url = settings.DATABASE_URL
-    print(f"Database URL: {database_url.split('@')[-1] if '@' in database_url else database_url}")
+    print("=" * 50)
+    print("Database Bootstrap Script")
+    print("=" * 50)
+    print(f"Timestamp: {datetime.now().isoformat()}")
+    print(f"Working directory: {os.getcwd()}")
+    print(f"Script location: {os.path.abspath(__file__)}")
     print()
     
+    # Load environment variables
+    try:
+        from app.core.config import settings
+        database_url = settings.DATABASE_URL
+        print(f"Database URL: {database_url.split('@')[-1] if '@' in database_url else database_url}")
+        print()
+    except Exception as e:
+        print(f"✗ ERROR: Failed to load settings: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+    
     # Parse database URL
-    db_info = parse_database_url(database_url)
+    try:
+        db_info = parse_database_url(database_url)
+        print(f"Parsed database info:")
+        print(f"  Scheme: {db_info['scheme']}")
+        print(f"  Host: {db_info['host']}")
+        print(f"  Port: {db_info['port']}")
+        print(f"  User: {db_info['user']}")
+        print(f"  Database: {db_info['database']}")
+        print()
+    except Exception as e:
+        print(f"✗ ERROR: Failed to parse database URL: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
     
     # Bootstrap based on database type
-    if db_info['scheme'] == 'sqlite':
-        success = bootstrap_sqlite()
-    elif db_info['scheme'] == 'postgresql':
-        if not db_info['database']:
-            print("Error: Database name not specified in DATABASE_URL")
+    try:
+        if db_info['scheme'] == 'sqlite':
+            success = bootstrap_sqlite()
+        elif db_info['scheme'] == 'postgresql':
+            if not db_info['database']:
+                print("✗ Error: Database name not specified in DATABASE_URL")
+                sys.exit(1)
+            success = bootstrap_postgresql(db_info)
+        else:
+            print(f"✗ Error: Unsupported database scheme: {db_info['scheme']}")
+            print("Supported schemes: sqlite, postgresql")
             sys.exit(1)
-        success = bootstrap_postgresql(db_info)
-    else:
-        print(f"Error: Unsupported database scheme: {db_info['scheme']}")
-        print("Supported schemes: sqlite, postgresql")
+    except Exception as e:
+        print(f"✗ ERROR: Exception during bootstrap: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
     
     if success:
-        print("\n✓ Database bootstrap completed successfully!")
+        print("\n" + "=" * 50)
+        print("✓ Database bootstrap completed successfully!")
+        print("=" * 50)
         sys.exit(0)
     else:
-        print("\n✗ Database bootstrap failed")
+        print("\n" + "=" * 50)
+        print("✗ Database bootstrap failed")
+        print("=" * 50)
         sys.exit(1)
 
 if __name__ == "__main__":

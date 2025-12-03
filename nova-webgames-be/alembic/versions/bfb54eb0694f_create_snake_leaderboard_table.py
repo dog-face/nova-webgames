@@ -47,3 +47,4 @@ def downgrade() -> None:
     # Drop snake_leaderboard table
     op.drop_table('snake_leaderboard')
 
+

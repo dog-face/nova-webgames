@@ -45,10 +45,12 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: 'bash -c "cd ../nova-webgames-be && venv/bin/python bootstrap_db.py; venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000"',
+      command: 'bash scripts/start-backend-for-e2e.sh',
       url: 'http://localhost:8000/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
+      stdout: 'pipe',
+      stderr: 'pipe',
       env: {
         DATABASE_URL: 'sqlite:///./test_snake_game.db',
         SECRET_KEY: 'test-secret-key-for-e2e-tests',
@@ -61,6 +63,8 @@ export default defineConfig({
       url: 'http://localhost:5173',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
+      stdout: 'pipe',
+      stderr: 'pipe',
     },
   ],
 });
