@@ -167,7 +167,7 @@ jobs:
             --add-host=host.docker.internal:host-gateway \
             -p 8000:8000 \
             -e DATABASE_URL=postgresql://test_user:test_password@host.docker.internal:5432/test_db \
-            -e SECRET_KEY=test-secret-key-for-ci \
+            -e SECRET_KEY=test-secret-key-for-ci-must-be-32-chars-min \
             -e ACCESS_TOKEN_EXPIRE_MINUTES=1440 \
             -e SESSION_TIMEOUT=300 \
             -e CORS_ORIGINS="*" \
@@ -276,7 +276,7 @@ jobs:
             --add-host=host.docker.internal:host-gateway \
             -p 8000:8000 \
             -e DATABASE_URL=postgresql://test_user:test_password@host.docker.internal:5432/test_db \
-            -e SECRET_KEY=test-secret-key-for-ci \
+            -e SECRET_KEY=test-secret-key-for-ci-must-be-32-chars-min \
             -e ACCESS_TOKEN_EXPIRE_MINUTES=1440 \
             -e SESSION_TIMEOUT=300 \
             -e CORS_ORIGINS="*" \
@@ -356,3 +356,4 @@ jobs:
         run: |
           docker stop backend-integration frontend-integration || true
           docker rm backend-integration frontend-integration || true
+
