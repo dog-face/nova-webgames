@@ -1,11 +1,11 @@
 services:
   postgres:
     image: postgres:14-alpine
-    container_name: snake-game-postgres
+    container_name: nova-webgames-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-snake_game}
+      POSTGRES_DB: ${POSTGRES_DB:-nova_webgames}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -14,15 +14,15 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - snake-game-network
+      - nova-webgames-network
 
   backend:
     build:
-      context: ./snake-game-be
+      context: ./nova-webgames-be
       dockerfile: Dockerfile
-    container_name: snake-game-backend
+    container_name: nova-webgames-backend
     volumes:
-      - ./snake-game-be:/app
+      - ./nova-webgames-be:/app
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-snake_game}
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-here-change-in-production}
@@ -35,15 +35,15 @@ services:
         condition: service_healthy
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     networks:
-      - snake-game-network
+      - nova-webgames-network
 
   frontend:
     build:
-      context: ./snake-game-fe
+      context: ./nova-webgames-fe
       dockerfile: Dockerfile
-    container_name: snake-game-frontend
+    container_name: nova-webgames-frontend
     volumes:
-      - ./snake-game-fe:/app
+      - ./nova-webgames-fe:/app
       - frontend_node_modules:/app/node_modules
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api/v1}
@@ -53,13 +53,13 @@ services:
       - backend
     command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
     networks:
-      - snake-game-network
+      - nova-webgames-network
 
 volumes:
   postgres_data:
   frontend_node_modules:
 
 networks:
-  snake-game-network:
+  nova-webgames-network:
     driver: bridge
 

@@ -11,8 +11,8 @@ RED := \033[0;31m
 NC := \033[0m # No Color
 
 # Directories
-BE_DIR := snake-game-be
-FE_DIR := snake-game-fe
+BE_DIR := nova-webgames-be
+FE_DIR := nova-webgames-fe
 VENV_DIR := $(BE_DIR)/venv
 VENV_BIN := $(VENV_DIR)/bin
 
@@ -26,7 +26,7 @@ NODE := node
 NPM := npm
 
 help: ## Show this help message
-	@echo "$(CYAN)Snake Game - Makefile Commands$(NC)"
+	@echo "$(CYAN)Nova WebGames - Makefile Commands$(NC)"
 	@echo ""
 	@echo "$(GREEN)Installation:$(NC)"
 	@echo "  make install      - Install dependencies for both frontend and backend"

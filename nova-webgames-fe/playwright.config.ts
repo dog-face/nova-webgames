@@ -45,7 +45,7 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: 'bash -c "cd ../snake-game-be && venv/bin/python bootstrap_db.py; venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000"',
+      command: 'bash -c "cd ../nova-webgames-be && venv/bin/python bootstrap_db.py; venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000"',
       url: 'http://localhost:8000/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,

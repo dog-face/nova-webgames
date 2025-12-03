@@ -86,7 +86,7 @@ def compare_components(backend_spec, frontend_spec):
 
 def main():
     backend_file = Path('openapi_backend.yaml')
-    frontend_file = Path('../snake-game-fe/openapi.yaml')
+    frontend_file = Path('../nova-webgames-fe/openapi.yaml')
     
     if not backend_file.exists():
         print(f"Error: Backend spec not found: {backend_file}")
@@ -95,7 +95,7 @@ def main():
     
     if not frontend_file.exists():
         print(f"Error: Frontend spec not found: {frontend_file}")
-        print("Expected location: ../snake-game-fe/openapi.yaml")
+        print("Expected location: ../nova-webgames-fe/openapi.yaml")
         sys.exit(1)
     
     print("Loading specs...")

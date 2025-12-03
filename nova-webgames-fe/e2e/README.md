@@ -6,7 +6,7 @@ End-to-end tests for the Snake Game application using Playwright.
 
 1. **Backend dependencies**: Make sure the backend virtual environment is set up:
    ```bash
-   cd ../snake-game-be
+   cd ../nova-webgames-be
    source venv/bin/activate
    pip install -r requirements.txt
    ```
@@ -89,7 +89,7 @@ CI=true npm run test:e2e
 ### Backend not starting
 - Ensure the backend virtual environment is activated and dependencies are installed
 - Check that port 8000 is not already in use
-- Verify the database bootstrap script works: `cd ../snake-game-be && source venv/bin/activate && python bootstrap_db.py`
+- Verify the database bootstrap script works: `cd ../nova-webgames-be && source venv/bin/activate && python bootstrap_db.py`
 
 ### Frontend not starting
 - Ensure `npm install` has been run
@@ -102,7 +102,7 @@ CI=true npm run test:e2e
 
 ### Database issues
 - The test database is automatically created and migrated
-- If issues persist, delete `../snake-game-be/test_snake_game.db` and rerun tests
+- If issues persist, delete `../nova-webgames-be/test_snake_game.db` and rerun tests
 
 
 

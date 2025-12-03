@@ -1,13 +1,13 @@
-# Snake Game
+# Nova WebGames
 
-A full-stack Snake game application with authentication, leaderboard, and real-time multiplayer features.
+A multi-game browser platform starting with Snake game. Features authentication, leaderboards, and real-time multiplayer.
 
 ## Project Structure
 
 This repository contains both the frontend and backend:
 
-- **`snake-game-be/`** - FastAPI backend (Python)
-- **`snake-game-fe/`** - React frontend (TypeScript)
+- **`nova-webgames-be/`** - FastAPI backend (Python)
+- **`nova-webgames-fe/`** - React frontend (TypeScript)
 
 ## Quick Start
 
@@ -15,7 +15,7 @@ This repository contains both the frontend and backend:
 
 1. Navigate to the backend directory:
 ```bash
-cd snake-game-be
+cd nova-webgames-be
 ```
 
 2. Activate virtual environment:
@@ -29,11 +29,11 @@ pip install -r requirements.txt
 ```
 
 4. Set up environment variables:
-Create a `.env` file in `snake-game-be/`:
+Create a `.env` file in `nova-webgames-be/`:
 
 **For PostgreSQL (recommended):**
 ```env
-DATABASE_URL=postgresql://user:password@localhost:5432/snake_game
+DATABASE_URL=postgresql://user:password@localhost:5432/nova_webgames
 SECRET_KEY=your-secret-key-here-change-in-production
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 SESSION_TIMEOUT=300
@@ -49,7 +49,7 @@ SESSION_TIMEOUT=300
 
 **PostgreSQL Setup:**
 - Install PostgreSQL: `brew install postgresql` (macOS) or `sudo apt-get install postgresql` (Linux)
-- Create database: `createdb snake_game` or via `psql`: `CREATE DATABASE snake_game;`
+- Create database: `createdb nova_webgames` or via `psql`: `CREATE DATABASE nova_webgames;`
 - Update `DATABASE_URL` in `.env` with your PostgreSQL credentials
 
 5. Bootstrap the database (creates database if using PostgreSQL, then runs migrations):
@@ -73,7 +73,7 @@ The backend will be available at `http://localhost:8000`
 
 1. Navigate to the frontend directory:
 ```bash
-cd snake-game-fe
+cd nova-webgames-fe
 ```
 
 2. Install dependencies:
@@ -82,7 +82,7 @@ npm install
 ```
 
 3. (Optional) Configure API URL:
-Create a `.env` file in `snake-game-fe/`:
+Create a `.env` file in `nova-webgames-fe/`:
 ```env
 VITE_API_URL=http://localhost:8000/api/v1
 ```
@@ -192,7 +192,7 @@ This will remove all containers, volumes, and images.
 
 Run tests:
 ```bash
-cd snake-game-be
+cd nova-webgames-be
 source venv/bin/activate
 pytest
 ```
@@ -201,17 +201,17 @@ pytest
 
 Run unit tests:
 ```bash
-cd snake-game-fe
+cd nova-webgames-fe
 npm test
 ```
 
 Run E2E tests (requires both backend and frontend):
 ```bash
-cd snake-game-fe
+cd nova-webgames-fe
 npm run test:e2e
 ```
 
-For more E2E testing options, see [snake-game-fe/e2e/README.md](snake-game-fe/e2e/README.md).
+For more E2E testing options, see [nova-webgames-fe/e2e/README.md](nova-webgames-fe/e2e/README.md).
 
 ## Technology Stack
 
