@@ -27,6 +27,22 @@ function Ground() {
   );
 }
 
+// Test box component - placed in front of player for visual reference
+function TestBox() {
+  const [ref] = useBox(() => ({
+    type: 'Static',
+    position: [0, 1, -5], // 5 units in front of starting position
+    args: [2, 2, 2], // 2x2x2 meter box
+  }));
+  
+  return (
+    <mesh ref={ref as React.RefObject<THREE.Mesh>} castShadow receiveShadow>
+      <boxGeometry args={[2, 2, 2]} />
+      <meshStandardMaterial color="#ef4444" /> {/* Red color for visibility */}
+    </mesh>
+  );
+}
+
 // Player capsule component
 function Player({ 
   position, 
@@ -401,6 +417,7 @@ export const FPSGame: React.FC = () => {
               
               <Physics gravity={[0, GAME_CONFIG.GRAVITY, 0]}>
                 <Ground />
+                <TestBox />
                 <Player 
                   position={playerPositionRef.current}
                   onUpdate={updatePlayerPosition}
