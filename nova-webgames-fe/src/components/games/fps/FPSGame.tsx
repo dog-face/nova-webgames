@@ -208,12 +208,10 @@ function RaycastSystem({
   onRaycastReady: (raycastFn: (origin: THREE.Vector3, direction: THREE.Vector3) => THREE.Intersection | null) => void;
 }) {
   let scene: THREE.Scene | null = null;
-  let camera: THREE.Camera | null = null;
   
   try {
     const three = useThree();
     scene = three.scene;
-    camera = three.camera;
   } catch (e) {
     // useThree can only be called inside Canvas - handle test environment
     // Provide a no-op raycast function for tests
