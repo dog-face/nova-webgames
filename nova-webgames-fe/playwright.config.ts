@@ -14,7 +14,10 @@ export default defineConfig({
   /* Use 4 workers in CI for faster test execution */
   workers: process.env.CI ? 4 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  /* Use 'list' reporter to show test names as they run, and 'github' for CI annotations */
+  reporter: process.env.CI 
+    ? [['list'], ['github']] 
+    : [['list'], ['html']],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -49,8 +52,9 @@ export default defineConfig({
       url: 'http://localhost:8000/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
-      stdout: 'pipe',
-      stderr: 'pipe',
+      // Suppress webServer output in CI to reduce noise - only show errors
+      stdout: process.env.CI ? 'ignore' : 'pipe',
+      stderr: process.env.CI ? 'ignore' : 'pipe',
       env: {
         DATABASE_URL: 'sqlite:///./test_snake_game.db',
         SECRET_KEY: 'test-secret-key-for-e2e-tests-must-be-32-chars-min',
@@ -63,8 +67,9 @@ export default defineConfig({
       url: 'http://localhost:5173',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
-      stdout: 'pipe',
-      stderr: 'pipe',
+      // Suppress webServer output in CI to reduce noise - only show errors
+      stdout: process.env.CI ? 'ignore' : 'pipe',
+      stderr: process.env.CI ? 'ignore' : 'pipe',
     },
   ],
 });

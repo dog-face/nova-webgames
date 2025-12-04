@@ -46,9 +46,10 @@ if [[ "${DATABASE_URL}" == sqlite* ]]; then
 fi
 
 # Start uvicorn server (bootstrap should already be done in CI)
+# Suppress access logs to reduce noise in E2E test output
 echo "=========================================="
 echo "Starting uvicorn server..."
-echo "Command: $UVICORN app.main:app --host 0.0.0.0 --port 8000"
+echo "Command: $UVICORN app.main:app --host 0.0.0.0 --port 8000 --no-access-log"
 echo "=========================================="
-exec $UVICORN app.main:app --host 0.0.0.0 --port 8000
+exec $UVICORN app.main:app --host 0.0.0.0 --port 8000 --no-access-log
 
