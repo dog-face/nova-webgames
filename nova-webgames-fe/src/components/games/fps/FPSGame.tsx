@@ -366,22 +366,22 @@ export const FPSGame: React.FC = () => {
     <div className="fps-game-container">
       {!isGameStarted ? (
         <div className="fps-game-menu">
-          <h1>🎮 FPS Arena</h1>
+        <h1>🎮 FPS Arena</h1>
           <p>3D First-Person Shooter</p>
           <button onClick={startGame} className="fps-start-button">
             Start Game
           </button>
           <div className="fps-instructions">
             <h3>Controls:</h3>
-            <ul>
+          <ul>
               <li><strong>WASD</strong> - Move</li>
               <li><strong>Mouse</strong> - Look around</li>
               <li><strong>Space</strong> - Jump</li>
               <li><strong>Shift</strong> - Sprint</li>
               <li><strong>ESC</strong> - Pause/Unpause</li>
-            </ul>
-          </div>
+          </ul>
         </div>
+      </div>
       ) : (
         <>
           <div 
